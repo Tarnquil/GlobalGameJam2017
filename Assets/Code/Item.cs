@@ -23,7 +23,7 @@ public class Item : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		pitch = Random.Range(0.1f, 1.0f);
+		pitch = Random.Range(1, 400);
 		TweenIn();
 		currentState = ItemState.TWEENING_IN;
 		prevState = ItemState.NULL;
@@ -58,6 +58,7 @@ public class Item : MonoBehaviour
 				case ItemState.SHAKING:
 					if(currentState != prevState)
 					{
+						this.gameObject.transform.rotation = Quaternion.identity;
 						prevState = currentState;
 						StartShake();
 						StopCoroutine("Cracking");
@@ -71,7 +72,7 @@ public class Item : MonoBehaviour
 
 					if((_currentPitch < pitch - (shakeRange + buffer))||(_currentPitch > pitch + (shakeRange + buffer)))
 					{
-						currentState = ItemState.STILL;
+						ChangeState(ItemState.STILL);
 						iTween.Stop(this.gameObject);
 					}
 					;
@@ -83,6 +84,12 @@ public class Item : MonoBehaviour
 						prevState = currentState; 
 						OnPointShake();
 						StartCoroutine("Cracking");
+					}
+
+					if((_currentPitch < pitch - (buffer))||(_currentPitch > pitch + (buffer)))
+					{
+						ChangeState(ItemState.SHAKING); 
+						iTween.Stop(this.gameObject);
 					}
 					;
 					break;

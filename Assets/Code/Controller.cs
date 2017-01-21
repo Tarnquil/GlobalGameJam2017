@@ -15,6 +15,8 @@ public class Controller : MonoBehaviour
 	AudioInput micInput;
 	[SerializeField]
 	Text pitchLabel;
+	[SerializeField]
+	Slider volSlider;
 
 	int score;
 
@@ -49,7 +51,7 @@ public class Controller : MonoBehaviour
 		}
 
 		pitchLabel.text = currentPlayerPitch.ToString();
-
+		volSlider.value = (1.0f / 400.0f) * currentPlayerPitch;
 		Debug.Log(currentPlayerPitch);
 	}
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
-using System.Collections.Generic;
 
 public class AudioInput : MonoBehaviour
 {
@@ -11,7 +10,7 @@ public class AudioInput : MonoBehaviour
 
 	bool hasMic = false;
 	public float timeSinceRestart, pitchValue, prevPitch;
-	int recordLength = 1, samplingSize = 30;
+	int recordLength = 1, samplingSize = 2048;
 	AudioClip storedClip, playingClip;
 	private float[] samples;
 	private float[] spectrum;
@@ -24,57 +23,39 @@ public class AudioInput : MonoBehaviour
 	{
 		normalisingSamples = new List<float>();
 		samples = new float[1024];
-		src.clip = Microphone.Start(Microphone.devices[0], true, 999, AudioSettings.outputSampleRate);//Microphone.Start(Microphone.devices[1], false, 999, 44100);
-		src.Play();
+		storedClip = Microphone.Start(Microphone.devices[0], true, 999, AudioSettings.outputSampleRate);
 	}
 
 	void Update()
 	{
 		
-		src.GetOutputData(samples, 0);
-		if(normalisingSamples.Count > samplingSize)
-		{
-			normalisingSamples.RemoveAt(0);
-		}
+		pitchValue = LevelMax();
 
-		float sum = 0;
-		for(int i = 0; i < 1024; i++)
-		{
-			sum += Mathf.Pow(samples[i], 2);
-		}
+	}
 
-		float maxV = 0;
-		int maxN = 0;
-
-		for(int i = 0; i < samples.Length; i++)
+	float  LevelMax()
+	{
+		float levelMax = 0;
+		float[] waveData = new float[samplingSize];
+		int micPosition = Microphone.GetPosition(null) - (samplingSize + 1); // null means the first microphone
+		if(micPosition < 0)
+			return 0;
+		storedClip.GetData(waveData, micPosition);
+		// Getting a peak on the last 128 samples
+		for(int i = 0; i < samplingSize; i++)
 		{
-			if(samples[i] > maxV&&samples[i] > THRESHOLD)
+			float wavePeak = waveData[i] * waveData[i];
+			if(levelMax < wavePeak)
 			{
-				maxV = samples[i];
-				maxN = i;
+				levelMax = wavePeak;
 			}
 		}
 
-		float freqN = maxN;
+		levelMax = (float)Mathf.RoundToInt(levelMax * 1000);
 
-		if(maxN > 0&&maxN < 1024 - 1)
-		{
-			float dL = samples[maxN - 1] / samples[maxN];
-			float dR = samples[maxN + 1] / samples[maxN];
-			freqN += 0.5f * (dR * dR - dL * dL);
-		}
-	
-		pitchValue = freqN * 24000 / 1024;
+		levelMax = Mathf.Clamp(levelMax, 0, 400);
 
-		pitchValue = Mathf.Clamp(pitchValue, 1000, 22689);
-		pitchValue = ((pitchValue - 1000) / (22689 - 1000));
-
-		normalisingSamples.Add(pitchValue);
-		foreach(float samp in normalisingSamples)
-		{
-			pitchValue = Mathf.Lerp(pitchValue, samp, 0.5f);
-		}
-
+		return levelMax;
 	}
 
 
