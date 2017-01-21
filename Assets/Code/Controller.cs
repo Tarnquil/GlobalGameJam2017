@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Controller : MonoBehaviour
 {
@@ -10,6 +11,11 @@ public class Controller : MonoBehaviour
 	Item currentItem = null;
 	[SerializeField]
 	float currentPlayerPitch = 0.0f;
+	[SerializeField]
+	AudioInput micInput;
+	[SerializeField]
+	Text pitchLabel;
+
 	int score;
 
 	// Use this for initialization
@@ -22,6 +28,11 @@ public class Controller : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+		if(micInput.pitchValue >= 0)
+		{
+			currentPlayerPitch = micInput.pitchValue;
+		}
+
 		if(currentItem != null)
 		{
 			currentItem.ReportPitch(currentPlayerPitch);
@@ -36,6 +47,10 @@ public class Controller : MonoBehaviour
 		{
 			currentPlayerPitch -= 0.01f;
 		}
+
+		pitchLabel.text = currentPlayerPitch.ToString();
+
+		Debug.Log(currentPlayerPitch);
 	}
 
 	public void ItemSmashed(int scoreValue)
