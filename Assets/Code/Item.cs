@@ -23,7 +23,7 @@ public class Item : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		pitch = Random.Range(1, 400);
+		pitch = Random.Range(1, 200);
 		TweenIn();
 		currentState = ItemState.TWEENING_IN;
 		prevState = ItemState.NULL;

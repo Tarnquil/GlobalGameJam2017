@@ -9,12 +9,11 @@ public class AudioInput : MonoBehaviour
 	AudioSource src;
 
 	bool hasMic = false;
-	public float timeSinceRestart, pitchValue, prevPitch;
-	int recordLength = 1, samplingSize = 2048;
+	public float pitchValue, prevPitch;
+	public float minVol, maxVol;
+	int recordLength = 1, samplingSize = 125;
 	AudioClip storedClip, playingClip;
-	private float[] samples;
-	private float[] spectrum;
-	private const float THRESHOLD = 0.02f;
+	float[] samples;
 
 	List<float> normalisingSamples;
 
@@ -28,20 +27,27 @@ public class AudioInput : MonoBehaviour
 
 	void Update()
 	{
-		
+		prevPitch = pitchValue;
 		pitchValue = LevelMax();
-
+		if(pitchValue > 0)
+		{
+			float vel = 0.5f;
+			pitchValue = Mathf.SmoothDamp(prevPitch, pitchValue, ref vel, 0.5f);
+		}
 	}
 
 	float  LevelMax()
 	{
 		float levelMax = 0;
 		float[] waveData = new float[samplingSize];
-		int micPosition = Microphone.GetPosition(null) - (samplingSize + 1); // null means the first microphone
+		int micPosition = Microphone.GetPosition(null) - (samplingSize + 1);
 		if(micPosition < 0)
+		{
 			return 0;
+		}
+
 		storedClip.GetData(waveData, micPosition);
-		// Getting a peak on the last 128 samples
+
 		for(int i = 0; i < samplingSize; i++)
 		{
 			float wavePeak = waveData[i] * waveData[i];
@@ -53,7 +59,8 @@ public class AudioInput : MonoBehaviour
 
 		levelMax = (float)Mathf.RoundToInt(levelMax * 1000);
 
-		levelMax = Mathf.Clamp(levelMax, 0, 400);
+		levelMax = Mathf.Clamp(levelMax, minVol, maxVol);
+
 
 		return levelMax;
 	}

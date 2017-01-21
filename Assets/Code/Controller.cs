@@ -51,7 +51,7 @@ public class Controller : MonoBehaviour
 		}
 
 		pitchLabel.text = currentPlayerPitch.ToString();
-		volSlider.value = (1.0f / 400.0f) * currentPlayerPitch;
+		volSlider.value = (1.0f / 200.0f) * currentPlayerPitch;
 		Debug.Log(currentPlayerPitch);
 	}
 
