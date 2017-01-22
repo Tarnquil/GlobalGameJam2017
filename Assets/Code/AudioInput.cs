@@ -11,7 +11,7 @@ public class AudioInput : MonoBehaviour
 	bool hasMic = false;
 	public float pitchValue, prevPitch;
 	public float minVol, maxVol;
-	int recordLength = 1, samplingSize = 125;
+	int recordLength = 1, samplingSize = 512;
 	AudioClip storedClip, playingClip;
 	float[] samples;
 
@@ -58,7 +58,7 @@ public class AudioInput : MonoBehaviour
 		}
 
 		levelMax = (float)Mathf.RoundToInt(levelMax * 1000);
-
+		levelMax *= 2;
 		levelMax = Mathf.Clamp(levelMax, minVol, maxVol);
 
 

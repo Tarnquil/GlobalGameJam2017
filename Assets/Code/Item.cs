@@ -16,14 +16,16 @@ public class Item : MonoBehaviour
 
 	[SerializeField]
 	ItemState currentState, prevState;
+	[SerializeField]
+	GameObject puff;
 	public Controller cont;
-	public float pitch, holdTime, buffer, shakeRange;
+	public float pitch, holdTime, buffer, shakeRange, pitchRangeLow, pitchRangeHigh;
 	public int scoreValue;
 
 	// Use this for initialization
 	void Start()
 	{
-		pitch = Random.Range(1, 200);
+		pitch = Random.Range(pitchRangeLow, pitchRangeHigh);
 		TweenIn();
 		currentState = ItemState.TWEENING_IN;
 		prevState = ItemState.NULL;
@@ -45,32 +47,33 @@ public class Item : MonoBehaviour
 					{
 						prevState = currentState;
 						this.gameObject.transform.rotation = Quaternion.identity;
+						this.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+						cont.StopShake();
 					}
 
 					if((_currentPitch > pitch - (shakeRange))&&(_currentPitch < pitch + (shakeRange)))
 					{
 						ChangeState(ItemState.SHAKING);
 					}
-
 					;
 					break;
 
 				case ItemState.SHAKING:
 					if(currentState != prevState)
 					{
+						this.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
 						this.gameObject.transform.rotation = Quaternion.identity;
 						prevState = currentState;
 						StartShake();
 						StopCoroutine("Cracking");
+						cont.StopShake();
 					}
 
-					if((_currentPitch < pitch - (buffer))||(_currentPitch > pitch + (buffer)))
+					if((_currentPitch > pitch - (buffer))&&(_currentPitch < pitch + (buffer)))
 					{
 						ChangeState(ItemState.CRACKING);
 						iTween.Stop(this.gameObject);
-					}
-
-					if((_currentPitch < pitch - (shakeRange + buffer))||(_currentPitch > pitch + (shakeRange + buffer)))
+					} else if((_currentPitch > pitch - (shakeRange + buffer))||(_currentPitch < pitch + (shakeRange + buffer)))
 					{
 						ChangeState(ItemState.STILL);
 						iTween.Stop(this.gameObject);
@@ -81,9 +84,11 @@ public class Item : MonoBehaviour
 				case ItemState.CRACKING:
 					if(currentState != prevState)
 					{
+						this.gameObject.GetComponent<SpriteRenderer>().color = Color.gray;
 						prevState = currentState; 
 						OnPointShake();
 						StartCoroutine("Cracking");
+						cont.StartShake();
 					}
 
 					if((_currentPitch < pitch - (buffer))||(_currentPitch > pitch + (buffer)))
@@ -91,6 +96,8 @@ public class Item : MonoBehaviour
 						ChangeState(ItemState.SHAKING); 
 						iTween.Stop(this.gameObject);
 					}
+
+					Handheld.Vibrate();
 					;
 					break;
 			}
@@ -107,6 +114,7 @@ public class Item : MonoBehaviour
 	public void Smash()
 	{
 		cont.ItemSmashed(scoreValue);
+		Instantiate(puff, this.gameObject.transform.position, Quaternion.Euler(new Vector3(-180, 0, 0)));
 		Destroy(this.gameObject);
 	}
 
@@ -148,7 +156,6 @@ public class Item : MonoBehaviour
 
 	void ChangeState(ItemState _newState)
 	{
-		Debug.Log(_newState);
 		prevState = currentState;
 		currentState = _newState;
 	}
